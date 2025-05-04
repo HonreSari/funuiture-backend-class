@@ -6,7 +6,7 @@ import morgan from "morgan";
 import { limiter } from "./middlewares/rateLimiter";
 
 export const app = express();
-
+app.
 app
   .use(express.urlencoded({ extended: true }))
   .use(express.json())
