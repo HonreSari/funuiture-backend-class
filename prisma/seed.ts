@@ -1,6 +1,6 @@
-import { PrismaClient , Prisma } from  '../generated/prisma';
-import * as bcrypt from 'bcrypt'
-import { faker } from '@faker-js/faker'
+import { PrismaClient, Prisma } from "../generated/prisma";
+import * as bcrypt from "bcrypt";
+import { faker } from "@faker-js/faker";
 const prisma = new PrismaClient();
 
 // const userData: Prisma.UserCreateInput[] = [
@@ -31,37 +31,38 @@ const prisma = new PrismaClient();
 //     }
 // ]
 
- function createRandomUser() {
-    return {
-      phone: faker.phone.number({ style: 'international'}),
-      password: '',
-      randomToken: faker.internet.jwt()
-    };
-  }
-  
-  export const users = faker.helpers.multiple(createRandomUser, {
-    count: 5,
-  });
-
-async function main ( ) {
-    console.log('Start seeding ...')
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("1234556654", salt);
-    for (const u of users) {
-        const user = await prisma.user.create({
-            data: {
-                phone: u.phone,
-                password: hashedPassword,
-                randomToken: u.randomToken
-            }
-        })
-        console.log(`Created user with id: ${user.id}`)
-    }
-    // console.log('Seeding finished.')
+function createRandomUser() {
+  return {
+    phone: faker.phone.number({ style: "international" }),
+    password: "",
+    randomToken: faker.internet.jwt(),
+  };
 }
 
-main().then( async ( ) => { await prisma.$disconnect()})
-                            .catch ( async (e) => {
-                                console.error(e);
-                                process.exit(1);     
-                            })
+export const users = faker.helpers.multiple(createRandomUser, {
+  count: 5,
+});
+
+async function main() {
+  console.log("Start seeding ...");
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash("1234556654", salt);
+  for (const u of users) {
+    u.password = hashedPassword;
+    await prisma.user.create({
+      data: u,
+    });
+    console.log(`Seeding finished`);
+  }
+  // console.log('Seeding finished.')
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });
