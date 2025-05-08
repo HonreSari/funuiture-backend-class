@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
+import { getUserByPhone } from "../services/authServices";
+import { checkUserExited } from "../utils/auth";
 export const register = [
   body("phone", "Invalid phone number")
     .trim()
@@ -17,10 +19,12 @@ export const register = [
       return next(error);
     }
     let phone = req.body.phone;
-    if(phone.slice(0,2) === "09"){
+    if (phone.slice(0, 2) === "09") {
       phone = phone.substring(2, phone.length);
     }
-    res.status(200).json({ message: "user register is successfully" });
+    const user = await getUserByPhone(phone);
+    checkUserExited(user);
+    res.status(200).json({ message: "User register is successful" });
   },
 ];
 export const verifyOtp = async (
