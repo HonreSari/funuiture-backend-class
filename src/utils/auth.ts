@@ -6,3 +6,24 @@ export const checkUserExited = (user: any) => {
         throw error;
     }
 }
+
+export const  checkOtpErrorIfSameDate =  (isSameData : boolean , errorCount : number) => {
+    if( isSameData && errorCount === 5){
+        const error : any = new Error (
+            "OTP is wrong for 5 times , plaease try again in tomorrow"
+        );
+        error.status = 401;
+        error.code = "Error_OverLImit";
+        throw error;
+
+    }
+}
+
+export const checkOtpRow = (otpRow: any) => {
+    if(!otpRow){
+        const error : any = new Error("Phone number is wrong");
+        error.status = 400;
+        error.code = "Error_Invalid";
+        throw error;
+    }
+}
