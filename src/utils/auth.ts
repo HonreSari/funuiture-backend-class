@@ -27,3 +27,12 @@ export const checkOtpRow = (otpRow: any) => {
         throw error;
     }
 }
+
+export const checkUserIfNotExit = (user: any ) => {
+   if( !user){
+       const error : any = new Error("This phone has not registered");
+        error.status = 401;
+        error.code = "Error_Unauthenticated";
+        throw error;
+   }   
+}
