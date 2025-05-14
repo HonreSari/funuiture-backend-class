@@ -113,6 +113,7 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
         err.status = 401;
         err.code = errorCode.unauthenticated;
         return next(err);
+
       }
       next();
     } catch (error: any) {
