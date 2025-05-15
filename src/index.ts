@@ -4,7 +4,6 @@ import helmet from "helmet";
 import compression from "compression";
 import cors from "cors"; //cross origin resource sharing(CORS)
 import morgan from "morgan";
-import { callbackify } from "util";
 
 const PORT = process.env.PORT;
 // These are "environment-aware" or global middlewares

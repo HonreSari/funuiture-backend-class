@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 interface CustomRequest extends Request {
   userId?: number;
+  // t?: (key: string) => string;
 }
 export const getAllUsers = (
   req: CustomRequest,
@@ -8,7 +9,8 @@ export const getAllUsers = (
   next: NextFunction
 ) => {
   const id = req.userId;
+  
   res
     .status(200)
-    .json({ message: "All User request is successfully", currentUserId: id });
+    .json({ message: req.t("welcome"), currentUserId: id });
 };
