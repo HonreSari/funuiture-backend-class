@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 interface CustomRequest extends Request {
-  userId?: number;
+  user?: any;
   // t?: (key: string) => string;
 }
 export const getAllUsers = (
@@ -8,9 +8,9 @@ export const getAllUsers = (
   res: Response,
   next: NextFunction
 ) => {
-  const id = req.userId;
+  const user = req.user;
   
   res
     .status(200)
-    .json({ message: req.t("welcome"), currentUserId: id });
+    .json({ message: req.t("welcome"), currentUserRole: user.role });
 };

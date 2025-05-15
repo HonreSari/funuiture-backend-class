@@ -35,7 +35,6 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
       err.status = 401;
       err.code = errorCode.unauthenticated;
       return next(err);
-      ``;
     }
     const user = await getUserById(decoded.id);
     if (!user) {
@@ -63,7 +62,7 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
     const newAccessToken = jwt.sign(
       accessTokenPayload,
       process.env.ACCESS_TOKEN_SECRET!,
-      { expiresIn: 60 * 15 }
+      { expiresIn: 60 * 10 }
     );
     const newRefreshToken = jwt.sign(
       refreshTokenPayload,

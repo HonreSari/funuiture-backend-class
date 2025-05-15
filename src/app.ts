@@ -7,9 +7,10 @@ import middleware from "i18next-http-middleware";
 import path from "path";
 import { auth } from "../src/middlewares/auth";
 import authRoutes from "../src/routes/v1/auth";
-import userRoutes from "../src/routes/v1/admin/user";
+import adminRoutes from "../src/routes/v1/admin/user";
 import profileRoutes from "./routes/v1/api/user";
 import viewRoutes from "./routes/web/view";
+import { authorise } from "./middlewares/authories";
 // import { get404 } from "./controllers/web/errorController";
 
 export const app = express();
@@ -45,7 +46,7 @@ i18next
 app.use(middleware.handle(i18next));
 //auth routes
 app.use("/api/v1", authRoutes);
-app.use("/api/v1/admin", auth, userRoutes);
+app.use("/api/v1/admin", auth, authorise(true, "ADMIN"), adminRoutes);
 app.use("/api/v1", profileRoutes);
 
 
