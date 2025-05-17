@@ -46,7 +46,7 @@ i18next
 app.use(middleware.handle(i18next));
 //auth routes
 app.use("/api/v1", authRoutes);
-app.use("/api/v1/admin", auth, authorise(true, "ADMIN"), adminRoutes);
+app.use("/api/v1/admin", auth,authorise(true, "ADMIN"), adminRoutes);
 app.use("/api/v1", profileRoutes);
 
 

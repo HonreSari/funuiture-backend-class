@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { body, query, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
+import { authorise } from "../../utils/authorise";
+import { getUserById } from "../../services/authService";
+import { checkUserIfNotExit } from "../../utils/auth";
 
 interface CustomRequest extends Request {
   userId?: number;
@@ -28,7 +31,25 @@ export const changeLanguage = [
   },
 ];
 
-
+export const testPermission = async(
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const user = await getUserById(userId!)
+  checkUserIfNotExit(user)
+  const info : any ={
+    title:  " Testing Permission ",
+  };
+  // if user.role = "AUTHOR"
+  //  content = "Your are the author"
+  const can = authorise(true, user!.role, "AUTHOR")
+  if(can){
+    info.content = "You have permission to read this line."
+  }
+  res.status(200).json({ message : ""})
+};
 // export const changeLanguage = (req : CustomRequest, res : Response , next : NextFunction) => {
 //   res.status(200).json({ message : "This shit is crazy"})
 // }
