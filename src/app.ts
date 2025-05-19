@@ -5,12 +5,9 @@ import i18next from "i18next";
 import Backend from "i18next-fs-backend";
 import middleware from "i18next-http-middleware";
 import path from "path";
-import { auth } from "../src/middlewares/auth";
-import authRoutes from "../src/routes/v1/auth";
-import adminRoutes from "../src/routes/v1/admin/user";
-import profileRoutes from "./routes/v1/api/user";
+
+import routes from './routes/v1'
 import viewRoutes from "./routes/web/view";
-import { authorise } from "./middlewares/authories";
 // import { get404 } from "./controllers/web/errorController";
 
 export const app = express();
@@ -44,11 +41,9 @@ i18next
     preload: ["en", "mm"],
   });
 app.use(middleware.handle(i18next));
-//auth routes
-app.use("/api/v1", authRoutes);
-app.use("/api/v1/admin", auth,authorise(true, "ADMIN"), adminRoutes);
-app.use("/api/v1", profileRoutes);
 
+//auth routes
+app.use(routes);
 
 // ejs view templete
 app.set("view engine", "ejs");

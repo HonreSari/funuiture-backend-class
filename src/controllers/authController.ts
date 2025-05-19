@@ -717,7 +717,7 @@ export const resetPassword = [
 
     const userUpdateData = {
       password: hashPassword,
-      randToken: refreshToken,
+      randomToken: refreshToken,
     };
     await updateUser(user!.id, userUpdateData);
 
