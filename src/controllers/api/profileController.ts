@@ -4,6 +4,7 @@ import { errorCode } from "../../../config/errorCode";
 import { authorise } from "../../utils/authorise";
 import { getUserById } from "../../services/authService";
 import { checkUserIfNotExit } from "../../utils/auth";
+import { responseError } from "../../utils/error";
 
 interface CustomRequest extends Request {
   userId?: number;
@@ -19,10 +20,7 @@ export const changeLanguage = [
     const errors = validationResult(req).array({ onlyFirstError: true });
     // If validation error occurs
     if (errors.length > 0) {
-      const error: any = new Error(errors[0].msg);
-      error.status = 400;
-      error.code = errorCode.invalid;
-      return next(error);
+      return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
 
     const { lng } = req.query;
