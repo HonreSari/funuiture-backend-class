@@ -77,7 +77,7 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
   };
 
   if (!accessToken) {
-    generateNewToken();
+    generateNewToken(); // if this is not a only function, we can use async/await
     // const err: any = new Error("Access token had expired");
     // err.status = 401;
     // err.code = errorCode.accessTokenExpired;
