@@ -1,3 +1,4 @@
+
 export const errorCode = {
     invalid : "Error_Invalid",
     unauthenticated : "Error_Unauthenticated",
@@ -8,5 +9,6 @@ export const errorCode = {
     otpExpired: "Error_OtpExpired",
     requestExpired : "Error_RequestExpired",
     accountFreeze : "Error_AccountFreeze",
-    unauthorised : "Error_Unauthorised"
+    unauthorised : "Error_Unauthorised",
+    maintenance : "Error_Maintenance"
 }
