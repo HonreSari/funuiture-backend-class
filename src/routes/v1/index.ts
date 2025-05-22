@@ -1,5 +1,5 @@
 import express from "express";
-import authRoutes from "./admin";
+import authRoutes from "./auth";
 import adminRoutes from "./admin";
 import userRoutes from "./api/user";
 import { auth } from "../../middlewares/auth";
