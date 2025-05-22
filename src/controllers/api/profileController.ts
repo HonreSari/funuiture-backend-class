@@ -89,3 +89,8 @@ export const uploadProfile = async (
       path: req.file?.path,
     });
 };
+
+export const uploadProfileMultiple = async (req : CustomRequest ,res : Response , next : NextFunction ) => {
+  
+  res.status(200).json({ message : " Multiple Profile picture uploaded successfully." });
+}

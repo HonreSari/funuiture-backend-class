@@ -18,6 +18,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static("public"));
+app.use(express.static("uploads")); // to accept the public views 
 app.use(viewRoutes);
 // app.use(get404)
 // app.get('/health', (req, res) => {
