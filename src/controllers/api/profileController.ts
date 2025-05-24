@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { body, query, validationResult } from "express-validator";
-import { unlink } from "node:fs/promises"; 
+import { unlink } from "node:fs/promises";
 import path from "path";
+import sharp from "sharp";
 import { errorCode } from "../../../config/errorCode";
 import { authorise } from "../../utils/authorise";
 import { getUserById, updateUser } from "../../services/authService";
@@ -66,31 +67,96 @@ export const uploadProfile = async (
   const user = await getUserById(userID!);
   checkUserIfNotExit(user);
   checkUploadFile(image);
-//  console.log(image);
+  //  console.log(image);
   const filename = image.filename;
- // const filePath = image.path.replace("\\","/")
- if( user?.image) {
-   try {
-      const filePath = path.join(__dirname, "../../..", "/uploads/images", user?.image!);
+  // const filePath = image.path.replace("\\","/")
+  if (user?.image) {
+    try {
+      const filePath = path.join(
+        __dirname,
+        "../../..",
+        "/uploads/images",
+        user?.image!
+      );
       await unlink(filePath);
     } catch (error) {
       console.error("Error deleting old image:", error);
     }
   }
   const userData = {
-    image : filename,
+    image: filename,
+  };
+  await updateUser(user?.id!, userData);
+  res.status(200).json({
+    message: "Profile picture uploaded successfully.",
+    filename: req.file?.filename,
+    path: req.file?.path,
+  });
+};
+
+export const uploadProfileMultiple = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  res
+    .status(200)
+    .json({ message: " Multiple Profile picture uploaded successfully." });
+};
+
+export const uploadProfileOptimize = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userID = req.userId;
+  const image = req.file;
+  const user = await getUserById(userID!);
+  checkUserIfNotExit(user);
+  checkUploadFile(image);
+
+  const filename = Date.now() + "-" + `${Math.round(Math.random() * 1e9)}.webp`;
+
+  try {
+    const optimizeImagePath = path.join(
+      __dirname,
+      "../../..",
+      "/uploads/images",
+      filename
+    );
+    await sharp(req.file?.buffer)
+      .resize(200, 200)
+      .webp({ quality: 50 })
+      .toFile(optimizeImagePath);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error optimizing image." });
+    return;
+  }
+
+  if (user?.image) {
+    try {
+      const filePath = path.join(
+        __dirname,
+        "../../..",
+        "/uploads/images",
+        user?.image!
+      );
+      await unlink(filePath);
+    } catch (error) {
+      console.error("Error deleting old image:", error);
+    }
+  }
+
+  const userData = {
+    image: filename,
   };
   await updateUser(user?.id!, userData);
   res
     .status(200)
     .json({
       message: "Profile picture uploaded successfully.",
-      filename: req.file?.filename,
-      path: req.file?.path,
+      image: filename,
     });
 };
 
-export const uploadProfileMultiple = async (req : CustomRequest ,res : Response , next : NextFunction ) => {
-  
-  res.status(200).json({ message : " Multiple Profile picture uploaded successfully." });
-}
