@@ -8,6 +8,10 @@ import {
 } from "../../../controllers/api/profileController";
 import { auth } from "../../../middlewares/auth";
 import upload, { uploadMemory } from "../../../middlewares/uploadFiles";
+import {
+  getPost,
+  getPostsByPagination,
+} from "../../../controllers/api/postController";
 const router = express.Router();
 
 router.post("/change-language", changeLanguage);
@@ -26,4 +30,6 @@ router.patch(
   uploadProfileMultiple
 );
 
+router.get("/posts", auth, getPostsByPagination);
+router.get("/posts/:id", auth, getPost);
 export default router;
