@@ -67,4 +67,4 @@ cron.schedule("* * * * *", async ( ) => {
     await createOrUpdateSettingStatus("maintenance", "false");
     console.log("Maintenance mode is off");
   }
-})
+})   // has to open this command !
