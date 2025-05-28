@@ -14,16 +14,17 @@ const connection = new Redis({
 const imageWorker = new Worker(
   "imageQueue",
   async (job) => {
-    const { filePath, fileName, width ,height , quality } = job.data;
+    const { filePath, fileName, width, height, quality } = job.data;
     const optimizeImagePath = path.join(
       __dirname,
       "../../..",
-      "/uploads/optimize",
+      "uploads",
+      "optimize",
       fileName
     );
     await sharp(filePath)
       .resize(width, height)
-      .webp({ quality: height })
+      .webp({ quality })
       .toFile(optimizeImagePath);
   },
   { connection }

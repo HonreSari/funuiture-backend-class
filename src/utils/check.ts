@@ -8,3 +8,11 @@ export  const checkUploadFile = (file : any ) => {
         throw error;
     }
 }
+export const checkModelIfExit = ( model : any) => {
+    if(!model){
+        const error : any = new Error("That data model doesn't exist");
+        error.status = 404;
+        error.code = errorCode.invalid;
+        throw error;
+    }
+}
