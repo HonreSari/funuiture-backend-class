@@ -1,7 +1,4 @@
-import { PrismaClient } from "../../generated/prisma";
-
-const prisma = new PrismaClient();
-
+import { prisma } from './prismaClient';
 export type PostArgs = {
   title: string;
   content: string;
@@ -112,9 +109,9 @@ export const getPostWithRelations = async (id : number) => {
       updatedAt: true,
       author: {
         select: {
-           firstName: true,
-           lastName: true,
-          //fullName: true,
+          //  firstName: true,
+          //  lastName: true,
+          fullName: true,
         },
       },
       category: {
@@ -134,4 +131,8 @@ export const getPostWithRelations = async (id : number) => {
       },
     },
   });
+};
+
+export const getPostList = async(options : any ) => {
+    return prisma.post.findMany(options)
 };
