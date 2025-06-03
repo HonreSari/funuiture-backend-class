@@ -10,6 +10,7 @@ import {
   getPostList,
   getPostWithRelations,
 } from "../../services/postService";
+import { getOrSetCache } from "../../utils/cache";
 import { title } from "node:process";
 import { skip } from "node:test";
 
@@ -30,7 +31,11 @@ export const getPost = [
     const user = await getUserById(userId!);
     checkUserIfNotExit(user);
 
-    const post = await getPostWithRelations(+postId);
+    // const post = await getPostWithRelations(+postId);
+    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const post = await getOrSetCache(cacheKey, async () => {
+      return await getPostWithRelations(+postId);
+    });
     /*
     const modifiedPost = {
       id: post!.id,
@@ -96,8 +101,10 @@ export const getPostsByPagination = [
         updatedAt: "desc",
       },
     };
-    const posts = await getPostList(options);
-
+    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const posts = await getOrSetCache(cacheKey, async () => {
+      return await getPostList(options);
+    });
     const hasNextPage = posts.length > +limit;
     let nextPage = null;
     const previousPage = +page !== 1 ? +page - 1 : null;
@@ -117,6 +124,7 @@ export const getPostsByPagination = [
   },
 ];
 
+//Cusor Pagination
 export const getInfinitePostsByPagination = [
   query("Cursor", "Cursor must be postId.").isInt({ gt: 0 }).optional(),
   query("limit", "Limit number must be unsigned interger")
@@ -155,7 +163,11 @@ export const getInfinitePostsByPagination = [
         id: "asc",
       },
     };
-    const posts = await getPostList(options);
+    // const posts = await getPostList(options);
+    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const posts = await getOrSetCache(cacheKey, async () => {
+      return await getPostList(options);
+    });
 
     const hasNextPage = posts.length > +limit;
 
@@ -163,15 +175,13 @@ export const getInfinitePostsByPagination = [
       posts.pop();
     }
 
-    const newCursor = posts.length > 0 ? posts[posts.length - 1].id : null;  
+    const newCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
 
-    res
-      .status(200)
-      .json({
-        message: "Get All infinite posts",
-        hasNextPage,
-        newCursor,
-        posts,
-      });
+    res.status(200).json({
+      message: "Get All infinite posts",
+      hasNextPage,
+      newCursor,
+      posts,
+    });
   },
 ];

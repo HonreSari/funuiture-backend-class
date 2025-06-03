@@ -18,6 +18,7 @@ import {
 } from "../../services/postService";
 import { use } from "i18next";
 import { Prisma } from "@prisma/client";
+import cacheQueue from "../../jobs/queues/cacheQueus";
 
 interface CustomRequest extends Request {
   userId?: number;
@@ -128,6 +129,17 @@ export const createPost = [
       tags,
     };
     const post = await createOnePost(data);
+    await cacheQueue.add(
+      "invalidate-post-cache",
+      {
+        pattern: "posts:*",
+      },
+      {
+        jobId: `invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
     res
       .status(200)
       .json({ message: "Successfully created in new post", postId: post.id });
@@ -232,6 +244,16 @@ export const updatePost = [
       await removeFile(post.image, optimizeFile);
     }
     const postUpdated = await updateOnePost(post.id, data);
+    await cacheQueue.add(
+      "invalidate-post-cache",
+      {
+        pattern: "posts:*",
+      },
+      {
+        jobId: `invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
     res
       .status(200)
       .json({ message: "Successfully updated post", postId: postUpdated.id });
@@ -239,7 +261,7 @@ export const updatePost = [
 ];
 
 export const deletePost = [
-   body("postId", "postId is required").isInt({ gt: 0 }),
+  body("postId", "postId is required").isInt({ gt: 0 }),
 
   async (req: CustomRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array({ onlyFirstError: true });
@@ -256,13 +278,31 @@ export const deletePost = [
     checkModelIfExit(post);
     if (user!.id !== post!.authorId) {
       return next(
-        responseError("That action is not allowed ", 403, errorCode.unauthorised)
+        responseError(
+          "That action is not allowed ",
+          403,
+          errorCode.unauthorised
+        )
       );
     }
 
     const postDeleted = await deleteOnePost(post!.id);
-      const optimizeFile = post!.image.split(".")[0] + ".webp";
-      await removeFile(post!.image, optimizeFile);
-    res.status(200).json({ message: "Successfully deleted the post", postId : postDeleted.id });
+    const optimizeFile = post!.image.split(".")[0] + ".webp";
+    await removeFile(post!.image, optimizeFile);
+
+    await cacheQueue.add(
+      "invalidate-post-cache",
+      {
+        pattern: "posts:*",
+      },
+      {
+        jobId: `invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+    res.status(200).json({
+      message: "Successfully deleted the post",
+      postId: postDeleted.id,
+    });
   },
 ];
