@@ -1,4 +1,4 @@
-import { prisma } from './prismaClient';
+import { prisma } from "./prismaClient";
 export type PostArgs = {
   title: string;
   content: string;
@@ -67,19 +67,13 @@ export const updateOnePost = async (postId: number, postData: PostArgs) => {
       },
     },
   };
-  if (postData.tags && postData.tags.length > 0) {
-    data.tags = {
-      connectOrCreate: postData.tags.map((tagName) => ({
-        where: { name: tagName }, // ?can use name to connect or create cause name is unique
-        create: { name: tagName },
-      })),
-    };
-  }
+
   if (postData.image) {
     data.image = postData.image;
   }
   if (postData.tags && postData.tags.length > 0) {
     data.tags = {
+      set: [], // ?drop out the relationship when connect new relationship in the table
       connectOrCreate: postData.tags.map((tagName) => ({
         where: { name: tagName }, // ?can use name to connect or create cause name is unique
         create: { name: tagName },
@@ -89,18 +83,17 @@ export const updateOnePost = async (postId: number, postData: PostArgs) => {
   return prisma.post.update({ where: { id: Number(postId) }, data }); //*Number(postId) is use to convert string to number I use the (+postId) before but it is not working in prisma
 };
 
+export const deleteOnePost = async (postId: number) => {
+  return prisma.post.delete({
+    where: { id: postId },
+  });
+};
 
-export const deleteOnePost = async( postId : number ) => {
-  return prisma.post.delete({ 
-    where : { id : postId}
-  })
-}
-
-export const getPostWithRelations = async (id : number) => {
+export const getPostWithRelations = async (id: number) => {
   return prisma.post.findUnique({
-    where: {id},
-   // omit: { createdAt : true}  // ? omit is to ingore that not to pull the db when user is call 
-       select: {
+    where: { id },
+    // omit: { createdAt : true}  // ? omit is to ingore that not to pull the db when user is call
+    select: {
       id: true,
       title: true,
       content: true,
@@ -133,6 +126,6 @@ export const getPostWithRelations = async (id : number) => {
   });
 };
 
-export const getPostList = async(options : any ) => {
-    return prisma.post.findMany(options)
+export const getPostList = async (options: any) => {
+  return prisma.post.findMany(options);
 };

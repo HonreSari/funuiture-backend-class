@@ -22,6 +22,7 @@ import cacheQueue from "../../jobs/queues/cacheQueus";
 
 interface CustomRequest extends Request {
   userId?: number;
+  user?: any;
 }
 
 const removeFile = async (
@@ -79,7 +80,7 @@ export const createPost = [
     }),
   async (req: CustomRequest, res: Response, next: NextFunction) => {
     const errors = validationResult(req).array({ onlyFirstError: true });
-    // if validation error occurs
+    //* if validation error occurs
     if (errors.length > 0) {
       if (req.file) {
         await removeFile(req.file.filename, null);
@@ -87,9 +88,11 @@ export const createPost = [
       return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     const { title, content, body, category, tags, type } = req.body;
-    const userID = req.userId;
+    // const userID = req.userId;
+    const user = req.user;
     checkUploadFile(req.file);
-    const user = await getUserById(userID!);
+    // const user = await getUserById(userID!);
+    /*
     if (!user) {
       return next(
         responseError(
@@ -99,13 +102,13 @@ export const createPost = [
         )
       );
     }
-
+*/
     const splitFileName = req.file?.fieldname.split(".")[0];
     await ImageQueue.add(
       "optimize-image",
       {
         filePath: req.file?.path,
-        fileName: `${splitFileName}.webp`,
+        fileName: `${splitFileName}.we bp`,
         width: 835,
         height: 577,
         quality: 100,
@@ -179,18 +182,19 @@ export const updatePost = [
       return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     const { postId, title, content, body, category, tags, type } = req.body;
-    const userID = req.userId;
+    // const userID = req.userId;
+    const user = req.user;
     // checkUploadFile(req.file);
-    const user = await getUserById(userID!);
-    if (!user) {
-      return next(
-        responseError(
-          "This user is not authenticated",
-          401,
-          errorCode.unauthenticated
-        )
-      );
-    }
+    // const user = await getUserById(userID!);
+    // if (!user) {
+    //   return next(
+    //     responseError(
+    //       "This user is not authenticated",
+    //       401,
+    //       errorCode.unauthenticated
+    //     )
+    //   );
+    // }
 
     const post = await getPostById(+postId); // ! + is use to convert string to number
     if (!post) {
@@ -270,10 +274,10 @@ export const deletePost = [
       return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     const { postId } = req.body;
-    const userId = req.userId;
-    const user = await getUserById(userId!);
-
-    checkUserIfNotExit(user);
+    // const userId = req.userId;
+    // const user = await getUserById(userId!);
+    const user = req.user;
+    // checkUserIfNotExit(user);
     const post = await getPostById(+postId); //? + is used to convert string to number
     checkModelIfExit(post);
     if (user!.id !== post!.authorId) {

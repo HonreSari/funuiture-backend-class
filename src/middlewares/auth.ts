@@ -62,7 +62,7 @@ export const auth = (req: CustomRequest, res: Response, next: NextFunction) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-        maxAge: 15 * 60 * 1000, // 15miutes
+        maxAge: 15 * 60 * 1000, // 15minutes
         path: "/",
       })
       .cookie("refreshToken", newRefreshToken, {
