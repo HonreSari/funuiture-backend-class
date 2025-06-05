@@ -13,4 +13,9 @@ router.post('/maintenance', setMaintenance)
 router.post('/posts', upload.single('image'), createPost);
 router.patch('/posts', upload.single('image'), updatePost);
 router.delete('/posts', deletePost);
+
+//CRUD for products
+router.post('/products', upload.array('images'), createPost);
+router.patch('/products', upload.array('images'), updatePost);
+router.delete('/products', deletePost);
 export default router

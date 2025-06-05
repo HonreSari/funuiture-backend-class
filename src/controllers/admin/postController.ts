@@ -16,8 +16,6 @@ import {
   PostArgs,
   updateOnePost,
 } from "../../services/postService";
-import { use } from "i18next";
-import { Prisma } from "@prisma/client";
 import cacheQueue from "../../jobs/queues/cacheQueus";
 
 interface CustomRequest extends Request {
@@ -88,9 +86,9 @@ export const createPost = [
       return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     const { title, content, body, category, tags, type } = req.body;
-    // const userID = req.userId;
     const user = req.user;
     checkUploadFile(req.file);
+    // const userID = req.userId;
     // const user = await getUserById(userID!);
     /*
     if (!user) {
