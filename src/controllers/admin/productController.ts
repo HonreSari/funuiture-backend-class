@@ -8,7 +8,12 @@ import { checkModelIfExit, checkUploadFile } from "../../utils/check";
 import { responseError } from "../../utils/error";
 import { getUserById } from "../../services/authService";
 import ImageQueue from "../../jobs/queues/imageQueue";
-import { createOneProduct, getProductById, UpdateOneProduct } from "../../services/productService";
+import {
+  createOneProduct,
+  deleteProductById,
+  getProductById,
+  UpdateOneProduct,
+} from "../../services/productService";
 import cacheQueue from "../../jobs/queues/cacheQueus";
 import { descriptions } from "jest-config";
 import { existsSync } from "node:fs";
@@ -197,7 +202,7 @@ export const updateProduct = [
       }
       return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
-        const {
+    const {
       productId,
       name,
       description,
@@ -211,62 +216,70 @@ export const updateProduct = [
 
     const product = await getProductById(+productId);
     if (!product) {
-      if( req.files  && req.files.length > 0){
+      if (req.files && req.files.length > 0) {
         const originalFiles = req.files.map((file: any) => file.filename);
         await removeFiles(originalFiles, null);
       }
-      return next(responseError("This data model doesn't not exit", 409 , errorCode.invalid));
+      return next(
+        responseError(
+          "This data model doesn't not exit",
+          409,
+          errorCode.invalid
+        )
+      );
     }
 
     let originalFileNames = [];
-    if(req.files && req.files.length > 0) {
-      originalFileNames = req.files.map(( file : any) => ( {
-        path : file.filename,
-      }))
+    if (req.files && req.files.length > 0) {
+      originalFileNames = req.files.map((file: any) => ({
+        path: file.filename,
+      }));
     }
 
-    const data : any = {
+    const data: any = {
       name,
       description,
       price,
       discount,
-      inventory : +inventory,
+      inventory: +inventory,
       category,
       tags,
       type,
-      images : originalFileNames
-    }
+      images: originalFileNames,
+    };
 
-    if( req.files && req.files.length > 0) {
-          await Promise.all(
-      req.files.map(async (file: any) => {
-        const splitFileName = file.filename.split(".")[0];
-        return ImageQueue.add(
-          "optimize-image",
-          {
-            filePath: file.path,
-            fileName: `${splitFileName}.webp`,
-            width: 835,
-            height: 577,
-            quality: 100,
-          },
-          {
-            attempts: 3,
-            backoff: {
-              type: "exponential",
-              delay: 1000,
+    if (req.files && req.files.length > 0) {
+      await Promise.all(
+        req.files.map(async (file: any) => {
+          const splitFileName = file.filename.split(".")[0];
+          return ImageQueue.add(
+            "optimize-image",
+            {
+              filePath: file.path,
+              fileName: `${splitFileName}.webp`,
+              width: 835,
+              height: 577,
+              quality: 100,
             },
-          }
-        );
-      })
-    );
-     // * Deleting Old images
-    const OrgFiles = product.images.map( (img) => img.path);
-    const OtpFiles = product.images.map( (img) => img.path.split(".")[0]+".webp");
-    await removeFiles(OrgFiles, OtpFiles);
+            {
+              attempts: 3,
+              backoff: {
+                type: "exponential",
+                delay: 1000,
+              },
+            }
+          );
+        })
+      );
+      // * Deleting Old images
+      const OrgFiles = product.images.map((img) => img.path);
+      const OtpFiles = product.images.map(
+        (img) => img.path.split(".")[0] + ".webp"
+      );
+      await removeFiles(OrgFiles, OtpFiles);
     }
-    const productUpdated = await UpdateOneProduct(product.id , data)
-      await cacheQueue.add(
+    const productUpdated = await UpdateOneProduct(product.id, data);
+    await cacheQueue.add(
       "invalidate-post-cache",
       {
         pattern: "products:*",
@@ -277,6 +290,50 @@ export const updateProduct = [
       }
     );
 
-    res.status(200).json({ message: "Product Update is successfully", productId : productUpdated.id})
+    res
+      .status(200)
+      .json({
+        message: "Product Update is successfully",
+        productId: productUpdated.id,
+      });
+  },
+];
+
+export const deleteProduct = [
+  body("productId", "Product Id is required").isInt({ min: 1 }),
+  async (req: CustomRequest, res: Response, next: NextFunction) => {
+    const errors = validationResult(req).array({ onlyFirstError: true });
+    //* if validation error occurs
+    if (errors.length > 0) {
+      if (req.files && req.files.length > 0) {
+        const originalFiles = req.files.map((file: any) => file.filename);
+        await removeFiles(originalFiles, null);
+      }
+      return next(responseError(errors[0].msg, 400, errorCode.invalid));
+    }
+
+    const { productId } = req.body;
+    const product = await getProductById(productId);
+    checkModelIfExit(product);
+
+    const productDeleted = await deleteProductById(product!.id);
+    const OrgFiles = product!.images.map((img) => img.path);
+    const OtpFiles = product!.images.map(
+      (img) => img.path.split(".")[0] + ".webp"
+    );
+    await removeFiles(OrgFiles, OtpFiles);
+
+    await cacheQueue.add(
+      "invalidate-post-cache",
+      {
+        pattern: "products:*",
+      },
+      {
+        jobId: `invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
+    res.status(200).json({ message: "Product delete is successfully" });
   },
 ];
