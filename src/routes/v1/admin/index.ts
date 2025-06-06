@@ -3,6 +3,7 @@ import { getAllUsers } from '../../../controllers/admin/userController';
 import { setMaintenance } from '../../../controllers/admin/systemController';
 import upload from '../../../middlewares/uploadFiles';
 import { createPost, deletePost, updatePost } from '../../../controllers/admin/postController';
+import { createProduct } from '../../../controllers/admin/productController';
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.patch('/posts', upload.single('image'), updatePost);
 router.delete('/posts', deletePost);
 
 //CRUD for products
-router.post('/products', upload.array('images'), createPost);
-router.patch('/products', upload.array('images'), updatePost);
-router.delete('/products', deletePost);
+router.post('/products', upload.array('images'), createProduct);
+// router.patch('/products', upload.array('images', 4), updateProduct);
+// router.delete('/products', deleteProduct);
 export default router

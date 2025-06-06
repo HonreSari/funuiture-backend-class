@@ -101,7 +101,7 @@ export const createPost = [
       );
     }
 */
-    const splitFileName = req.file?.fieldname.split(".")[0];
+    const splitFileName = req.file?.filename.split(".")[0];
     await ImageQueue.add(
       "optimize-image",
       {
@@ -224,7 +224,7 @@ export const updatePost = [
     };
     if (req.file) {
       data.image = req.file.filename;
-      const splitFileName = req.file?.fieldname.split(".")[0];
+      const splitFileName = req.file?.filename.split(".")[0];
       await ImageQueue.add(
         "optimize-image",
         {
