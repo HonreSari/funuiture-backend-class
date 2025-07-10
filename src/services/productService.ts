@@ -84,9 +84,33 @@ export const UpdateOneProduct = async (productId: number, data: any) => {
   });
 };
 
-
-export const deleteProductById = async(id : number) => {
+export const deleteProductById = async (id: number) => {
   return prisma.product.delete({
-    where: { id }
-  })
-}
+    where: { id },
+  });
+};
+
+export const getProductWithRelations = async (id: number) => {
+  return prisma.product.findUnique({
+    where: { id },
+    omit: {
+      categoryId: true,
+      typeId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    include: {
+      images: {
+        select: { 
+          id: true,
+          path: true,
+        },
+      },
+    },
+  });
+};
+
+
+export const getProductList = async (options: any) => {
+  return prisma.post.findMany(options);
+};

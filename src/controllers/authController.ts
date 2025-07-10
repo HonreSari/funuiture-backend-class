@@ -21,6 +21,10 @@ import { generateOTP, generateToken } from "../utils/generate";
 import bcrypt, { getRounds } from "bcrypt";
 import { errorCode } from "../../config/errorCode";
 import { responseError } from "../utils/error";
+
+interface CustomRequest extends Request {
+  userId?: number;
+}
 export const register = [
   body("phone", "Invalid phone number")
     .trim()
@@ -32,7 +36,7 @@ export const register = [
     const errors = validationResult(req).array({ onlyFirstError: true });
     // if validation error occurs
     if (errors.length > 0) {
-       return next(responseError(errors[0].msg, 400, errorCode.invalid));
+      return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     let phone = req.body.phone;
     if (phone.slice(0, 2) === "09") {
@@ -79,7 +83,13 @@ export const register = [
           // error.status = 405;
           // error.code = errorCode.overLimit;
           // return next(error);
-           return next(responseError("otp is request for 3 times per day", 405, errorCode.overLimit));
+          return next(
+            responseError(
+              "otp is request for 3 times per day",
+              405,
+              errorCode.overLimit
+            )
+          );
         } else {
           const otpData = {
             otp: hashOtp,
@@ -116,7 +126,7 @@ export const verifyOtp = [
     const errors = validationResult(req).array({ onlyFirstError: true });
     // if validation error occurs
     if (errors.length > 0) {
-       return next(responseError(errors[0].msg, 401, errorCode.invalid));
+      return next(responseError(errors[0].msg, 401, errorCode.invalid));
     }
     const { phone, otp, token } = req.body;
     const user = await getUserByPhone(phone);
@@ -136,7 +146,7 @@ export const verifyOtp = [
         error: 5,
       };
       await updateOtp(otpRow!.id, otpData);
-       return next(responseError("Invalid OTP", 401, errorCode.invalid));
+      return next(responseError("Invalid OTP", 401, errorCode.invalid));
     }
     // OTP is expired
     const isExpired = moment().diff(otpRow!.updatedAt, "minutes") > 2;
@@ -159,7 +169,7 @@ export const verifyOtp = [
         };
         await updateOtp(otpRow!.id, otpData);
       }
-     return next(responseError("OTP is incorret", 401, errorCode.invalid));
+      return next(responseError("OTP is incorret", 401, errorCode.invalid));
     }
     //everything is okay
     const verifyToken = generateToken();
@@ -192,7 +202,7 @@ export const confirmPassword = [
     const errors = validationResult(req).array({ onlyFirstError: true });
     // if validation error occurs
     if (errors.length > 0) {
-  return next(responseError(errors[0].msg, 400, errorCode.invalid));
+      return next(responseError(errors[0].msg, 400, errorCode.invalid));
     }
     const { phone, password, token } = req.body;
     const user = await getUserByPhone(phone);
@@ -200,7 +210,13 @@ export const confirmPassword = [
     const otpRow = await getOtpByPhone(phone);
     checkOtpRow(otpRow);
     if (otpRow?.error === 5) {
-      return next(responseError("Your input has exceeded the limit", 401, errorCode.attack));
+      return next(
+        responseError(
+          "Your input has exceeded the limit",
+          401,
+          errorCode.attack
+        )
+      );
     }
     if (otpRow?.verifyToken !== token) {
       const otpData = {
@@ -216,7 +232,7 @@ export const confirmPassword = [
       // error.status = 403;
       // error.code = errorCode.otpExpired;
       // return next(error);
-       return next(responseError("OTP is expired", 403, errorCode.otpExpired));
+      return next(responseError("OTP is expired", 403, errorCode.otpExpired));
     }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
@@ -418,11 +434,13 @@ export const logout = async (
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    path: "/",
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    path: "/",
   });
   res.status(200).json({ message: "Logout Successfully" });
 };
@@ -696,3 +714,20 @@ export const resetPassword = [
       });
   },
 ];
+
+export const authCheck = async (
+  req: CustomRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const user = await getUserById(userId!);
+  checkUserIfNotExit(user);
+
+  res.status(200).json({
+    message: "You are authenticated",
+    userId: user?.id,
+    username: user?.firstName + " " + user?.lastName,
+    image: user?.image,
+  });
+};

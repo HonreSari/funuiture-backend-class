@@ -194,7 +194,7 @@ export const updatePost = [
     //   );
     // }
 
-    const post = await getPostById(+postId); // ! + is use to convert string to number
+    const post = await getPostById(+postId); // ! + is used to convert string to number
     if (!post) {
       if (req.file) {
         await removeFile(req.file.filename, null);

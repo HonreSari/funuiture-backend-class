@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { body, query, param, validationResult } from "express-validator";
 import { errorCode } from "../../../config/errorCode";
 import { checkUserExited, checkUserIfNotExit } from "../../utils/auth";
-import { checkUploadFile } from "../../utils/check";
+import { checkModelIfExit, checkUploadFile } from "../../utils/check";
 import { responseError } from "../../utils/error";
 import { getUserById } from "../../services/authService";
 import {
@@ -32,10 +32,11 @@ export const getPost = [
     checkUserIfNotExit(user);
 
     // const post = await getPostWithRelations(+postId);
-    const cacheKey = `posts:${JSON.stringify(req.query)}`;
+    const cacheKey = `posts:${JSON.stringify(postId)}`;
     const post = await getOrSetCache(cacheKey, async () => {
       return await getPostWithRelations(+postId);
     });
+    checkModelIfExit(post);
     /*
     const modifiedPost = {
       id: post!.id,
@@ -57,6 +58,7 @@ export const getPost = [
           : null,
     };
 */
+
     res.status(200).json({ message: "OK", post });
   },
 ];

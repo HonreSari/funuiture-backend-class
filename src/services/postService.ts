@@ -92,7 +92,7 @@ export const deleteOnePost = async (postId: number) => {
 export const getPostWithRelations = async (id: number) => {
   return prisma.post.findUnique({
     where: { id },
-    // omit: { createdAt : true}  // ? omit is to ingore that not to pull the db when user is call
+    // omit: { createdAt : true}   // ? omit is to ingore that not to pull the db when user is call
     select: {
       id: true,
       title: true,
@@ -125,6 +125,8 @@ export const getPostWithRelations = async (id: number) => {
     },
   });
 };
+
+
 
 export const getPostList = async (options: any) => {
   return prisma.post.findMany(options);

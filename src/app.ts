@@ -1,29 +1,35 @@
+import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
-
+import helmet from "helmet";
+import compression from "compression";
+import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import i18next from "i18next";
 import Backend from "i18next-fs-backend";
 import middleware from "i18next-http-middleware";
 import path from "path";
-import cron from "node-cron";
 
-import routes from './routes/v1'
-import viewRoutes from "./routes/web/view";
-import { createOrUpdateSettingStatus, getSettingStatus } from "./services/settingsService";
-// import { get404 } from "./controllers/web/errorController";
+// import { limiter } from "./middlewares/rateLimiter";
+import routes from "./routes/v1";
+import { corsOptions } from "./services/corsService";
+// import {
+//   createOrUpdateSettingStatus,
+//   getSettingStatus,
+// } from "./services/settingService";
 
 export const app = express();
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
+app.set("view engine", "ejs");
+app.set("views", "src/views");
 
-app.use(express.static("public"));
-app.use(express.static("uploads")); // to accept the public views 
-app.use(viewRoutes);
-// app.use(get404)
-// app.get('/health', (req, res) => {
-//     res.status(200).json({ message: "Server is alright"})
-// })
+app
+  .use(morgan("dev"))
+  .use(express.urlencoded({ extended: true }))
+  .use(express.json())
+  .use(cookieParser())
+  .use(helmet())
+  .use(compression());
+
 i18next
   .use(Backend)
   .use(middleware.LanguageDetector)
@@ -45,26 +51,28 @@ i18next
   });
 app.use(middleware.handle(i18next));
 
-//auth routes
-app.use(routes);
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+  next();
+});
 
-// ejs view templete
-app.set("view engine", "ejs");
-app.set("views", "./src/views");
+app.use(express.static("public"));
+app.use(express.static("uploads"));
+
+app.use(routes);
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
   const status = error.status || 500;
-  const message = error.message || "Server error";
-  const errorCode = error.code || "Error_code";
+  const message = error.message || "Server Error";
+  const errorCode = error.code || "Error_Code";
   res.status(status).json({ message, error: errorCode });
 });
 
-// cron job ( but cron is not for heavy task)
-cron.schedule("* * * * *", async ( ) => {
-  console.log("running a task every minute for Testing purposes");
-  const settings = await getSettingStatus("maintenance");
-  if( settings?.value === "true") {
-    await createOrUpdateSettingStatus("maintenance", "false");
-    console.log("Maintenance mode is off");
-  }
-})   // has to open this command !
+// cron.schedule("* 5 * * *", async () => {
+//   console.log("Running a task every 5am For testing purpose");
+//   const setting = await getSettingStatus("maintenance");
+//   if (setting?.value === "true") {
+//     await createOrUpdateSettingStatus("maintenance", "false");
+//     console.log("Now maintenance mode is off");
+//   }
+// });

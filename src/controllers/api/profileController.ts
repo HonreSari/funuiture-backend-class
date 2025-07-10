@@ -52,7 +52,7 @@ export const testPermission = async (
   if (can) {
     info.content = "You have permission to read this line.";
   }
-  res.status(200).json({ message: "" });
+  res.status(200).json({ info });
 };
 // export const changeLanguage = (req : CustomRequest, res : Response , next : NextFunction) => {
 //   res.status(200).json({ message : "This shit is crazy"})

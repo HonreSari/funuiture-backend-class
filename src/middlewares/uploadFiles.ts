@@ -5,11 +5,12 @@ const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/images");
   },
-  filename: (req, file, cb) => {
-    const exe = file.mimetype.split("/")[1]; // to get the file extension
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9 ) + "." + exe;;
-    cb(null, uniqueSuffix );
-  },
+filename: (req, file, cb) => {
+  const exe = file.mimetype.split("/")[1];
+  let uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9) + "." + exe;
+  uniqueSuffix = uniqueSuffix.replace(/\s+/g, "_"); // Replace spaces with underscores
+  cb(null, uniqueSuffix);
+},
 });
 
 const fileFilter = (
@@ -20,7 +21,8 @@ const fileFilter = (
   if (
     file.mimetype === "image/png" ||
     file.mimetype === "image/jpg" ||
-    file.mimetype === "image/jpeg"
+    file.mimetype === "image/jpeg" ||
+    file.mimetype  === "image/webp"
   ) {
     cb(null, true);
   } else {
